@@ -19,6 +19,11 @@ impl BinEncoder {
             wave: 0.,
         }
     }
+
+    pub fn add_data(&mut self, data: &[u8]) {
+        data.iter()
+            .for_each(|x| self.data.extend(x.view_bits::<Lsb0>()));
+    }
 }
 
 impl Iterator for BinEncoder {

@@ -20,7 +20,7 @@ impl BinDecoder {
     pub fn add(&mut self, val: f32) {
         if self.last.is_none() {
             self.last = Some(val);
-            return ;
+            return;
         }
 
         if val < 0. && self.last.unwrap() >= 0. {
