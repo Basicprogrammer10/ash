@@ -7,4 +7,6 @@ edition = "2021"
 
 [dependencies]
 bitvec = "1.0.1"
+clap = "3.2.15"
+cpal = "0.13.5"
 hound = "3.4.0"
