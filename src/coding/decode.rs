@@ -4,7 +4,7 @@ pub struct BinDecoder {
     i: usize,
     start: usize,
     last: Option<f32>,
-    data: BitVec<u8, Lsb0>,
+    pub data: BitVec<u8, Lsb0>,
 }
 
 impl BinDecoder {
@@ -17,7 +17,8 @@ impl BinDecoder {
         }
     }
 
-    pub fn add(&mut self, val: f32) {
+    pub fn add(&mut self, mut val: f32) {
+        val += 0.1;
         if self.last.is_none() {
             self.last = Some(val);
             return;
