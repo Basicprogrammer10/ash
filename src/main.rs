@@ -1,7 +1,4 @@
-use std::fs;
-
 use clap::{builder::NonEmptyStringValueParser, Arg, Command};
-use hound::{SampleFormat, WavReader, WavSpec, WavWriter};
 
 mod client;
 mod coding;

@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 use std::process::{Command, Stdio};
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc};
 use std::thread;
 
 use clap::ArgMatches;
@@ -8,6 +8,7 @@ use cpal::{
     self,
     traits::{DeviceTrait, HostTrait, StreamTrait},
 };
+use crossbeam::channel;
 
 use crate::coding::BinEncoder;
 
@@ -19,7 +20,7 @@ pub fn start(m: &ArgMatches) {
     dbg!(start_cmd);
 
     // Make encoder
-    let (tx, rx) = mpsc::channel::<Vec<u8>>();
+    let (tx, rx) = channel::unbounded::<Vec<u8>>();
     let mut encoder = BinEncoder::new(&[]);
 
     // Init output stuff
@@ -67,15 +68,27 @@ pub fn start(m: &ArgMatches) {
         .args(parts.collect::<Vec<_>>())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .stdin(Stdio::piped())
+        // .stdin(Stdio::piped())
         .spawn()
         .expect("Failed to start command");
 
     let stdout = child.stdout.unwrap();
-    for i in stdout.bytes().map(|x| x.unwrap()) {
-        std::io::stdout().write_all(&[i]).unwrap();
-        tx.send(vec![i]).unwrap();
-    }
+    let stderr = child.stderr.unwrap();
+
+    let atx = Arc::new(tx);
+    let tx = atx.clone();
+    thread::spawn(move || {
+        for i in stdout.bytes().map(|x| x.unwrap()) {
+            tx.send(vec![i]).unwrap();
+        }
+    });
+
+    let tx = atx.clone();
+    thread::spawn(move || {
+        for i in stderr.bytes().map(|x| x.unwrap()) {
+            tx.send(vec![i]).unwrap();
+        }
+    });
 
     thread::park();
 }
